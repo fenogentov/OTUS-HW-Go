@@ -18,7 +18,6 @@ var (
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
-
 	start := time.Now()
 
 	var file *os.File
@@ -50,7 +49,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	bar := NewBar(limit)
 
 	for {
-
 		file.Seek(seek, 0)
 		if (limit + offset) < (seek + blockCopy) {
 			blockCopy = limit + offset - seek
