@@ -39,13 +39,11 @@ func Unpack(s string) (string, error) {
 				continue
 			}
 			return "", ErrInvalidString
-
 		}
 
 		if len(runeS) > i+2 && unicode.IsDigit(runeS[i+1]) && unicode.IsDigit(runeS[i+2]) { // число, а не цифра
 			return "", ErrInvalidString
 		} else if len(runeS) > i+1 && unicode.IsDigit(runeS[i+1]) { // цифра после символа
-			//			fmt.Println("point 1")
 			d, _ := strconv.Atoi(string(runeS[i+1]))
 			r := strings.Repeat(string(runeS[i]), d)
 			tmp.WriteString(r)
