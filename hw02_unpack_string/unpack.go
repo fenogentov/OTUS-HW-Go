@@ -39,6 +39,7 @@ func Unpack(s string) (string, error) {
 				continue
 			}
 			return "", ErrInvalidString
+
 		}
 
 		if len(runeS) > i+2 && unicode.IsDigit(runeS[i+1]) && unicode.IsDigit(runeS[i+2]) { // число, а не цифра

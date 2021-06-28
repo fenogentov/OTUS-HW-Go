@@ -45,6 +45,7 @@ func TestUnpackInvalidString(t *testing.T) {
 		t.Run(tc, func(t *testing.T) {
 			_, err := Unpack(tc)
 			require.Truef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
+
 		})
 	}
 }
