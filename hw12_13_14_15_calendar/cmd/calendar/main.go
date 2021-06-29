@@ -3,21 +3,20 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
+	"log"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
 )
+
+//
+//
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "../hw12_13_14_15_calendar/configs/config.toml", "Path to configuration file")
 }
 
 func main() {
@@ -28,13 +27,28 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	config, err := NewConfig(configFile)
+	if err != nil {
+		log.Fatalf("can't get config: %v", err)
+	}
+	logg := logger.New(config.Logger.File, config.Logger.Level)
+	logg.Debug("logging")
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	//	memStorageEn := !config.DB.Enable
+	//	if config.DB.Enable {
+	//	storage, err := sqlstorage.New(config.DB.User, config.DB.Password, config.DB.Host, config.DB.Port, config.DB.NameDB)
+	//	if err != nil {
+	//		logg.Error(err.Error())
+	//		memStorageEn = true
+	//	}
+	//	calendar := app.New(logg, storage)
+	//	}
+	//	if memStorageEn {
+	//		storage := memorystorage.New()
+	//		calendar := app.New(logg, storage)
+	//	}
 
-	server := internalhttp.NewServer(logg, calendar)
+	//	server := internalhttp.NewServer(*logg, calendar, config.Server.Host, config.Server.Port)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -43,19 +57,19 @@ func main() {
 	go func() {
 		<-ctx.Done()
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
+		//		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		//		defer cancel()
 
-		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
-		}
+		//	if err := server.Stop(ctx); err != nil {
+		//		logg.Error("failed to stop http server: " + err.Error())
+		//	}
 	}()
 
 	logg.Info("calendar is running...")
 
-	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		cancel()
-		os.Exit(1) //nolint:gocritic
-	}
+	// if err := server.Start(ctx); err != nil {
+	// 	logg.Error("failed to start http server: " + err.Error())
+	// 	cancel()
+	// 	os.Exit(1)
+	// }
 }

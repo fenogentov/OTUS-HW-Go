@@ -1,26 +1,51 @@
 package app
 
 import (
-	"context"
+	"hw12_13_14_15_calendar/internal/storage"
+	"time"
 )
 
+// App ...
 type App struct { // TODO
+	storage *Storage
 }
 
-type Logger interface { // TODO
+// Logger ...
+type Logger interface {
+	Info(msg string)
+	Error(msg string)
+	Warn(msg string)
+	Debug(msg string)
 }
 
+// Storage ...
 type Storage interface { // TODO
+	CreateEvent(evnt storage.Event)     // добавление события в хранилище;
+	UpdateEvent(evnt storage.Event)     // изменение события в хранилище;
+	DeleteEvent(evnt storage.Event)     // удаление события из хранилища;
+	GetEvents(startDT, endDT time.Time) // листинг событий;
 }
 
-func New(logger Logger, storage Storage) *App {
+// New ...
+func New(logger Logger, storage *Storage) *App {
 	return &App{}
 }
 
-func (a *App) CreateEvent(ctx context.Context, id, title string) error {
+// CreateEvent ...
+func (a *App) CreateEvent(e storage.Event) error {
 	// TODO
 	return nil
 	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
+}
+
+func (a *App) UpdateEvent(evnt storage.Event) {
+
+}
+func (a *App) DeleteEvent(evnt storage.Event) {
+
+}
+func (a *App) GetEvents(startDT, endDT time.Time) {
+
 }
 
 // TODO

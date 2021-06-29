@@ -1,8 +1,9 @@
-package memorystorage
+package sqlstorage
 
 import (
 	"fmt"
 
+	"hw12_13_14_15_calendar/internal/logger"
 	"hw12_13_14_15_calendar/internal/storage"
 	"testing"
 	"time"
@@ -48,9 +49,10 @@ var testCases = []struct {
 }
 
 func TestStorage(t *testing.T) {
+	logg := logger.New("logrus.log", "DEBUG")
 	t.Run(testCases[0].name, func(t *testing.T) {
-		tStorage := New()
-		tStorage.CreateEvent(storage.Event{})
+
+		tStorage, _ := New(*logg, "postgres", "Fav660755", "127.0.0.1", "5432", "calendar")
 		tStorage.CreateEvent(testCases[0].event)
 		tStorage.CreateEvent(testCases[1].event)
 		tStorage.UpdateEvent(storage.Event{})
@@ -58,7 +60,7 @@ func TestStorage(t *testing.T) {
 		tStorage.DeleteEvent(testCases[0].event)
 		tStorage.DeleteEvent(storage.Event{})
 		fmt.Println(tStorage)
-		fmt.Printf("%+v\n", tStorage.GetEvents(time.Now(), time.Now().Add(time.Duration(time.Second*35))))
+		//		fmt.Printf("%+v\n", tStorage.GetEvents(time.Now(), time.Now().Add(time.Duration(time.Second*35))))
 	})
 
 }

@@ -1,5 +1,21 @@
 [logger]
-level = "INFO"
+level = "DEBUG"
+file = "logs/logrus.log"
+
+[server]
+host = "localhost"
+port = "9091"
+
+
+[DB]
+enable = true
+user = "postgres"
+password = "Fav660755"
+host = "127.0.0.1"
+port = "5432"
+nameDB = "calendar"
+
+
 
 # TODO
 # ...
