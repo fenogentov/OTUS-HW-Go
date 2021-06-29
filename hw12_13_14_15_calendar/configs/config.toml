@@ -1,6 +1,6 @@
 [logger]
 level = "DEBUG"
-path = "logs/logrus.log"
+file = "logs/logrus.log"
 
 [server]
 host = "localhost"
