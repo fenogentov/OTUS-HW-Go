@@ -1,4 +1,4 @@
-module github.com/OTUS-HW-Go/hw08_envdir_tool
+module github.com/fenogentov/OTUS-HW-Go/hw08_envdir_tool
 
 go 1.16
 
