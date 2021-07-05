@@ -6,7 +6,6 @@ file = "logs/logrus.log"
 host = "localhost"
 port = "9091"
 
-
 [DB]
 enable = true
 user = "postgres"
