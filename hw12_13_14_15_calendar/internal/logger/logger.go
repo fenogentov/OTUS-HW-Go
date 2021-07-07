@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -13,13 +12,12 @@ type Logger struct {
 }
 
 // New ...
-func New(path, level string) *Logger {
+func New(file, level string) *Logger {
 	logg := logrus.New()
 
-	fmt.Println(path)
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	f, err := os.OpenFile(file, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	if err == nil {
-		logg.SetOutput(file)
+		logg.SetOutput(f)
 	} else {
 		logg.Info("Failed to log to file, using default stderr", err)
 	}
@@ -29,6 +27,7 @@ func New(path, level string) *Logger {
 		logg.SetLevel(lvl)
 	} else {
 		logg.Info("Failed parse level logger", err)
+		logg.SetLevel(logrus.DebugLevel)
 	}
 
 	logg.SetFormatter(&logrus.TextFormatter{

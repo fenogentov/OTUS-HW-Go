@@ -3,12 +3,13 @@ package sqlstorage
 import (
 	"context"
 	"fmt"
-	"hw12_13_14_15_calendar/internal/logger"
-	"hw12_13_14_15_calendar/internal/storage"
 	"log"
 	"time"
 
-	_ "github.com/jackc/pgx/stdlib"
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
+
+	// _ "github.com/jackc/pgx/stdlib" .
 	"github.com/jmoiron/sqlx"
 )
 
@@ -20,7 +21,7 @@ type Storage struct { // TODO
 
 // New ...
 func New(logger logger.Logger, user, password, host, port, nameDB string) (*Storage, error) {
-	//"postgres://username:password@localhost:5432/database_name"
+	// "postgres://username:password@localhost:5432/database_name"
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		user, password, host, port, nameDB)
 
@@ -39,7 +40,7 @@ func New(logger logger.Logger, user, password, host, port, nameDB string) (*Stor
 	for rows.Next() {
 		fmt.Println(rows)
 	}
-	//sqlStatement := `INSERT INTO tst (isbn, title, author, price)
+	// sqlStatement := `INSERT INTO tst (isbn, title, author, price)
 	//	VALUES ('qertu', 'jon@calhogu.oq', 'ontghanq', 55)`
 	//	_, err = db.Exec(sqlStatement)
 	//	if err != nil {

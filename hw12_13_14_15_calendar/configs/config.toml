@@ -2,20 +2,14 @@
 level = "DEBUG"
 file = "logs/logrus.log"
 
-[server]
+[HTTPServer]
 host = "localhost"
-port = "9091"
-
+port = "8081"
 
 [DB]
 enable = true
-user = "postgres"
-password = "Fav660755"
+user = "root"
+password = "12345"
 host = "127.0.0.1"
 port = "5432"
 nameDB = "calendar"
-
-
-
-# TODO
-# ...

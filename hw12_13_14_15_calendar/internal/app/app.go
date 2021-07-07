@@ -1,8 +1,9 @@
 package app
 
 import (
-	"hw12_13_14_15_calendar/internal/storage"
 	"time"
+
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
 )
 
 // App ...
@@ -38,12 +39,17 @@ func (a *App) CreateEvent(e storage.Event) error {
 	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
 }
 
+// UpdateEvent ...
 func (a *App) UpdateEvent(evnt storage.Event) {
 
 }
+
+// DeleteEvent ...
 func (a *App) DeleteEvent(evnt storage.Event) {
 
 }
+
+// GetEvents ...
 func (a *App) GetEvents(startDT, endDT time.Time) {
 
 }

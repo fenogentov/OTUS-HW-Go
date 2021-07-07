@@ -4,10 +4,13 @@ import (
 	"context"
 	"flag"
 	"log"
+	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
+	internalhttp "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/http"
 )
 
 //
@@ -32,7 +35,6 @@ func main() {
 		log.Fatalf("can't get config: %v", err)
 	}
 	logg := logger.New(config.Logger.File, config.Logger.Level)
-	logg.Debug("logging")
 
 	//	memStorageEn := !config.DB.Enable
 	//	if config.DB.Enable {
@@ -48,7 +50,7 @@ func main() {
 	//		calendar := app.New(logg, storage)
 	//	}
 
-	//	server := internalhttp.NewServer(*logg, calendar, config.Server.Host, config.Server.Port)
+	server := internalhttp.NewServer(*logg, config.HTTPServer.Host, config.HTTPServer.Port)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -57,19 +59,19 @@ func main() {
 	go func() {
 		<-ctx.Done()
 
-		//		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		//		defer cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
 
-		//	if err := server.Stop(ctx); err != nil {
-		//		logg.Error("failed to stop http server: " + err.Error())
-		//	}
+		if err := server.Stop(ctx); err != nil {
+			logg.Error("failed to stop http server: " + err.Error())
+		}
 	}()
 
 	logg.Info("calendar is running...")
 
-	// if err := server.Start(ctx); err != nil {
-	// 	logg.Error("failed to start http server: " + err.Error())
-	// 	cancel()
-	// 	os.Exit(1)
-	// }
+	if err := server.Start(ctx); err != nil {
+		logg.Error("failed to start http server: " + err.Error())
+		cancel()
+		defer os.Exit(1)
+	}
 }

@@ -2,10 +2,10 @@ package memorystorage
 
 import (
 	"fmt"
-
-	"hw12_13_14_15_calendar/internal/storage"
 	"testing"
 	"time"
+
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
 )
 
 var testCases = []struct {
@@ -48,7 +48,7 @@ var testCases = []struct {
 }
 
 func TestStorage(t *testing.T) {
-	t.Run(testCases[0].name, func(t *testing.T) {
+	t.Run("Storage Memory", func(t *testing.T) {
 		tStorage := New()
 		tStorage.CreateEvent(storage.Event{})
 		tStorage.CreateEvent(testCases[0].event)
@@ -57,8 +57,6 @@ func TestStorage(t *testing.T) {
 		tStorage.UpdateEvent(testCases[2].event)
 		tStorage.DeleteEvent(testCases[0].event)
 		tStorage.DeleteEvent(storage.Event{})
-		fmt.Println(tStorage)
-		fmt.Printf("%+v\n", tStorage.GetEvents(time.Now(), time.Now().Add(time.Duration(time.Second*35))))
+		fmt.Printf("%+v\n", tStorage.GetEvents(time.Now(), time.Now().Add(time.Second*35)))
 	})
-
 }

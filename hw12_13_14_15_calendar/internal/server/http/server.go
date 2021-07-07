@@ -3,11 +3,11 @@ package internalhttp
 import (
 	"context"
 	"fmt"
-	"hw12_13_14_15_calendar/internal/logger"
 	"net"
 	"net/http"
 	"time"
 
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
 	"github.com/pkg/errors"
 )
 
@@ -26,8 +26,8 @@ type Logger interface { // TODO
 type Application interface { // TODO
 }
 
-//NewServer ...
-func NewServer(logger logger.Logger, app Application, host, port string) *Server {
+// NewServer ...
+func NewServer(logger logger.Logger, host, port string) *Server {
 	addr := net.JoinHostPort(host, port)
 	return &Server{
 		address: addr,
@@ -45,20 +45,20 @@ func (s *Server) Start(ctx context.Context) error {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	s.logger.Info("err")
+	s.logger.Info("http")
 	err := s.server.ListenAndServe()
 	if err != nil {
 		fmt.Println(err)
 	}
 	<-ctx.Done()
+	s.logger.Info("HTTP server start")
 	return nil
-
 }
 
 // Stop ...
 func (s *Server) Stop(ctx context.Context) error {
 	if err := s.server.Shutdown(ctx); err != nil {
-		return errors.Wrap(err, "stop server error")
+		return errors.Errorf("HTPP server error stoped: %s", err)
 	}
 	return nil
 }

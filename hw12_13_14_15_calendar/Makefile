@@ -23,7 +23,7 @@ version: build
 	$(BIN) version
 
 test:
-	go test -race ./... 
+	go test -v -race ./... 
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.37.0
@@ -32,6 +32,6 @@ lint: install-lint-deps
 	golangci-lint run ./...
 
 migrate:
-	goose -dir=migrations postgres "user=postgres password=Fav660755 dbname=calendar sslmode=disable" up
+	goose -dir=migrations postgres "user=root password=12345 dbname=calendar sslmode=disable" up
 
 .PHONY: build run build-img run-img version test lint

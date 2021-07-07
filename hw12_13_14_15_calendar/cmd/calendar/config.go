@@ -14,7 +14,6 @@ type Config struct {
 	Logger     LoggerConf
 	HTTPServer HTTPServerConf
 	DB         DBConf
-	// TODO
 }
 
 // LoggerConf ...
@@ -22,12 +21,12 @@ type LoggerConf struct {
 	Level, File string
 }
 
-// ServerConf ...
+// HTTPServerConf ...
 type HTTPServerConf struct {
-	Port string
+	Host, Port string
 }
 
-// DataBaseConf ...
+// DBConf ...
 type DBConf struct {
 	Enable   bool
 	User     string

@@ -4,10 +4,10 @@ import (
 	"sync"
 	"time"
 
-	"hw12_13_14_15_calendar/internal/storage"
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
 )
 
-//Storage ...
+// Storage ...
 type Storage struct {
 	//	events map[uuid.UUID]storage.Event
 	events map[int]storage.Event
