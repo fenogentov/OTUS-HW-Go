@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
+	internalgrpc "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/http"
 )
 
@@ -50,6 +51,8 @@ func main() {
 	//		calendar := app.New(logg, storage)
 	//	}
 
+	serv := internalgrpc.NewServer(config.gRPCServer.Host, config.gRPCServer.Port)
+
 	server := internalhttp.NewServer(*logg, config.HTTPServer.Host, config.HTTPServer.Port)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
@@ -68,6 +71,8 @@ func main() {
 	}()
 
 	logg.Info("calendar is running...")
+
+	serv.Start(ctx)
 
 	if err := server.Start(ctx); err != nil {
 		logg.Error("failed to start http server: " + err.Error())

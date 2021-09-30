@@ -10,7 +10,7 @@ import (
 // Storage ...
 type Storage struct {
 	//	events map[uuid.UUID]storage.Event
-	events map[int]storage.Event
+	events map[int64]storage.Event
 	mu     sync.RWMutex
 }
 
@@ -18,7 +18,7 @@ type Storage struct {
 func New() *Storage {
 	return &Storage{
 		//		events: make(map[uuid.UUID]storage.Event),
-		events: make(map[int]storage.Event),
+		events: make(map[int64]storage.Event),
 	}
 }
 

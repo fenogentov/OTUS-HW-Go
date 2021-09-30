@@ -14,6 +14,7 @@ type Config struct {
 	Logger     LoggerConf
 	HTTPServer HTTPServerConf
 	DB         DBConf
+	gRPCServer gRPCServerConf
 }
 
 // LoggerConf ...
@@ -23,6 +24,11 @@ type LoggerConf struct {
 
 // HTTPServerConf ...
 type HTTPServerConf struct {
+	Host, Port string
+}
+
+// gRPCServerConf ...
+type gRPCServerConf struct {
 	Host, Port string
 }
 

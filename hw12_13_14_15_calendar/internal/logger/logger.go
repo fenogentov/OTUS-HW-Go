@@ -19,7 +19,7 @@ func New(file, level string) *Logger {
 	if err == nil {
 		logg.SetOutput(f)
 	} else {
-		logg.Info("Failed to log to file, using default stderr", err)
+		logg.Info("Failed to log to file, using default stderr: ", err)
 	}
 
 	lvl, err := logrus.ParseLevel(level)
