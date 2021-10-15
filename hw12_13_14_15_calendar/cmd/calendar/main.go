@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -13,9 +14,6 @@ import (
 	internalgrpc "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/http"
 )
-
-//
-//
 
 var configFile string
 
@@ -51,8 +49,9 @@ func main() {
 	//		calendar := app.New(logg, storage)
 	//	}
 
+	fmt.Println("grpc: ", config.gRPCServer.Host, config.gRPCServer.Port)
 	serv := internalgrpc.NewServer(config.gRPCServer.Host, config.gRPCServer.Port)
-
+	fmt.Println("http: ", config.HTTPServer.Host, config.HTTPServer.Port)
 	server := internalhttp.NewServer(*logg, config.HTTPServer.Host, config.HTTPServer.Port)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
@@ -61,7 +60,7 @@ func main() {
 
 	go func() {
 		<-ctx.Done()
-
+		fmt.Println("go go")
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 

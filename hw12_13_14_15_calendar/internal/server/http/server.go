@@ -37,6 +37,7 @@ func NewServer(logger logger.Logger, host, port string) *Server {
 
 // Start ...
 func (s *Server) Start(ctx context.Context) error {
+	fmt.Println("http server start")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", s.loggingMiddleware(s.answerHello))
 	s.server = &http.Server{
