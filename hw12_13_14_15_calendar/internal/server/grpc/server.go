@@ -6,37 +6,50 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/grpc/proto"
+	"hw12_13_14_15_calendar/internal/logger"
+	pb "hw12_13_14_15_calendar/internal/server/grpc/proto"
 
 	"google.golang.org/grpc"
 )
 
 // Server ...
 type Server struct {
-	lis    net.Listener
-	server *grpc.Server
+	address string
+	lis     net.Listener
+	server  *grpc.Server
+	logger  *logger.Logger
 }
 
 // NewServer ...
-func NewServer(host, port string) *Server {
+func NewServer(logger *logger.Logger, host, port string) *Server {
 	addr := net.JoinHostPort(host, port)
+
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	server := grpc.NewServer()
-	serv := pb.UnimplementedCalendarServer{}
-	pb.RegisterCalendarServer(server, serv)
+	grpcServer := grpc.NewServer()
+	pb.RegisterCalendarServer(grpcServer, pb.UnimplementedCalendarServer{})
 
-	return &Server{lis: lis, server: server}
+	return &Server{
+		address: addr,
+		lis:     lis,
+		server:  grpcServer}
 }
 
 // Start ...
-func (s *Server) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) {
 	fmt.Println("start grpc")
-	if err := s.server.Serve(s.lis); err != nil {
+	err := s.server.Serve(s.lis)
+	if err != nil {
 		log.Fatalf("failed to serve: %v", err)
-		return err
 	}
-	return nil
+}
+
+func (s *Server) Stop() {
+
+	if s.server != nil {
+		s.server.Stop()
+	}
+	s.logger.Info("grpc server stop")
 }

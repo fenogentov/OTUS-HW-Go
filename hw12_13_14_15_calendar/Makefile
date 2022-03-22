@@ -4,8 +4,11 @@ DOCKER_IMG="calendar:develop"
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
+docker-compose:
+	docker-compose -f "deployments/docker-compose.yaml" up -d --build
+
 generate:
-	protoc api/proto/EventService.proto --go_out=./internal/grpc/proto --go-grpc_out=./internal/grpc/proto
+	protoc -I=./api/proto/google/protobuf -I=. api/proto/EventService.proto --go_out=internal/server/grpc/proto --go-grpc_out=internal/server/grpc/proto
 	
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
@@ -26,7 +29,7 @@ version: build
 	$(BIN) version
 
 test:
-	go test -v -race ./... -count=1
+	go test -v -race ./... -count=10
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.37.0
@@ -35,6 +38,6 @@ lint: install-lint-deps
 	golangci-lint run ./...
 
 migrate:
-	goose -dir=migrations postgres "user=root password=12345 dbname=calendar sslmode=disable" up
+	goose -dir=migrations postgres "user=root password=12345 dbname=calendar host=127.0.0.1 port=5438 sslmode=disable" up
 
 .PHONY: build run build-img run-img version test lint

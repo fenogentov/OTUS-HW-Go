@@ -3,22 +3,23 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
+	memorystorage "hw12_13_14_15_calendar/internal/storage/memory"
+	sqlstorage "hw12_13_14_15_calendar/internal/storage/sql"
 	"log"
-	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
-	internalgrpc "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/grpc"
-	internalhttp "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/http"
+	"hw12_13_14_15_calendar/internal/logger"
+	"hw12_13_14_15_calendar/internal/storage"
+
+	grpcserv "hw12_13_14_15_calendar/internal/server/grpc"
+	httpserv "hw12_13_14_15_calendar/internal/server/http"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "../hw12_13_14_15_calendar/configs/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "./configs/config.toml", "path to configuration file")
 }
 
 func main() {
@@ -28,31 +29,31 @@ func main() {
 		printVersion()
 		return
 	}
-
 	config, err := NewConfig(configFile)
 	if err != nil {
-		log.Fatalf("can't get config: %v", err)
+		log.Fatalf("can't get config > %v", err)
 	}
 	logg := logger.New(config.Logger.File, config.Logger.Level)
 
-	//	memStorageEn := !config.DB.Enable
-	//	if config.DB.Enable {
-	//	storage, err := sqlstorage.New(config.DB.User, config.DB.Password, config.DB.Host, config.DB.Port, config.DB.NameDB)
-	//	if err != nil {
-	//		logg.Error(err.Error())
-	//		memStorageEn = true
-	//	}
-	//	calendar := app.New(logg, storage)
-	//	}
-	//	if memStorageEn {
-	//		storage := memorystorage.New()
-	//		calendar := app.New(logg, storage)
-	//	}
+	logg.Info("calendar is running ...")
 
-	fmt.Println("grpc: ", config.gRPCServer.Host, config.gRPCServer.Port)
-	serv := internalgrpc.NewServer(config.gRPCServer.Host, config.gRPCServer.Port)
-	fmt.Println("http: ", config.HTTPServer.Host, config.HTTPServer.Port)
-	server := internalhttp.NewServer(*logg, config.HTTPServer.Host, config.HTTPServer.Port)
+	memoryStorageEn := !config.DB.Enable
+	var storage storage.Storage
+	if config.DB.Enable {
+		storage, err = sqlstorage.New(logg, config.DB.User, config.DB.Password, config.DB.Host, config.DB.Port, config.DB.NameDB)
+		if err != nil {
+			logg.Error(err.Error())
+			memoryStorageEn = true
+		}
+	}
+	if memoryStorageEn {
+		storage = memorystorage.New()
+	}
+
+	logg.Info("http server > " + config.HTTPServer.Host + ":" + config.HTTPServer.Port)
+	httpServer := httpserv.NewServer(logg, config.HTTPServer.Host, config.HTTPServer.Port, storage)
+
+	grpcServer := grpcserv.NewServer(logg, config.GRPCServer.Host, config.GRPCServer.Port)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -60,22 +61,21 @@ func main() {
 
 	go func() {
 		<-ctx.Done()
-		fmt.Println("go go")
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-
-		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
-		}
+		httpServer.Shutdown()
+		grpcServer.Stop()
 	}()
 
-	logg.Info("calendar is running...")
+	go httpServer.Start(ctx)
 
-	serv.Start(ctx)
+	go grpcServer.Start(ctx)
 
-	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		cancel()
-		defer os.Exit(1)
-	}
+	// lis, err := net.Listen("tcp", "0.0.0.0:50051")
+	// if err == nil {
+	// 	log.Fatalf("failed to listen: %v", err)
+	// }
+	// grpcServer := gprc.NewServer()
+	// pb.RegisterCalendarServer(grpcServer, pb.CalendarServer{})
+
+	<-ctx.Done()
+
 }

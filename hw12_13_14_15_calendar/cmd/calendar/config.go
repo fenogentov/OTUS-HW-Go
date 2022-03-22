@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/BurntSushi/toml"
 )
 
@@ -13,8 +11,8 @@ import (
 type Config struct {
 	Logger     LoggerConf
 	HTTPServer HTTPServerConf
+	GRPCServer gRPCServerConf
 	DB         DBConf
-	gRPCServer gRPCServerConf
 }
 
 // LoggerConf ...
@@ -48,8 +46,5 @@ func NewConfig(path string) (Config, error) {
 	if _, err := toml.DecodeFile(path, &conf); err != nil {
 		return Config{}, err
 	}
-	fmt.Println("Config: ", conf)
 	return conf, nil
 }
-
-// TODO

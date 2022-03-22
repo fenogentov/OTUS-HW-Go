@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
+	"hw12_13_14_15_calendar/internal/storage"
 )
 
 // Storage ...
@@ -23,7 +23,7 @@ func New() *Storage {
 }
 
 // CreateEvent ...
-func (s *Storage) CreateEvent(evnt storage.Event) {
+func (s *Storage) CreateEvent(evnt storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -31,37 +31,36 @@ func (s *Storage) CreateEvent(evnt storage.Event) {
 	//	s.events[evnt.ID] = evnt
 
 	s.events[evnt.ID] = evnt
+	return nil
 }
 
 // UpdateEvent ...
-func (s *Storage) UpdateEvent(evnt storage.Event) {
+func (s *Storage) UpdateEvent(evnt storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
 	s.events[evnt.ID] = evnt
+	return nil
 }
 
 // DeleteEvent ...
-func (s *Storage) DeleteEvent(evnt storage.Event) {
+func (s *Storage) DeleteEvent(evnt storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
 	delete(s.events, evnt.ID)
+	return nil
 }
 
 // GetEvents ...
-func (s *Storage) GetEvents(startDT, endDT time.Time) []storage.Event {
+func (s *Storage) GetEvents(startDT, endDT time.Time) ([]storage.Event, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
 	var events []storage.Event
 	for _, e := range s.events {
 		if e.StartTime.Second() >= startDT.Second() && e.EndTime.Second() <= endDT.Second() {
 			events = append(events, e)
 		}
 	}
-
-	return events
+	return events, nil
 }
 
 // TODO

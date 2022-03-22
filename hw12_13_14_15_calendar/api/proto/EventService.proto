@@ -7,7 +7,7 @@ option go_package=".;proto_event";
                                             // protoc proto/product_info.proto --go-grpc_out=./go
                                             // создано в путь_создания_grpc+<путь A> = go/tst
 
- import "google/protobuf/timestamp.proto";
+import "api/proto/google/protobuf/timestamp.proto";
 
 service Calendar{
 	rpc CreateEvent (Event) returns (Event){}
@@ -21,8 +21,8 @@ message Event {
 	string 						Title  		= 2; // * Заголовок - короткий текст;
 	google.protobuf.Timestamp 	StartTime   = 3; // * Дата и время события;
 	google.protobuf.Timestamp 	EndTime    	= 4; // * Длительность события (или дата и время окончания);
-	string 						Description = 5; // * Описание события - длинный текст, опционально;
+	string 						Descript	= 5; // * Описание события - длинный текст, опционально;
 	string 						UserID      = 6; // * ID пользователя, владельца события;
 }
 
-// protoc -I=./google/protobuf -I=. api/proto/EventService.proto --go_out=internal/server/grpc/proto --go-grpc_out=internal/server/grpc/proto
+// protoc -I=./api/proto/google/protobuf -I=. api/proto/EventService.proto --go_out=internal/server/grpc/proto --go-grpc_out=internal/server/grpc/proto

@@ -1,72 +1,223 @@
-package internalhttp
+package http_server
 
 import (
 	"context"
-	"fmt"
-	"net"
+	"encoding/json"
+	"hw12_13_14_15_calendar/internal/logger"
+	"hw12_13_14_15_calendar/internal/storage"
 	"net/http"
 	"time"
 
-	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
+	"github.com/gorilla/mux"
+	"github.com/ktr0731/evans/app"
 	"github.com/pkg/errors"
 )
 
-// Server ...
 type Server struct {
-	address string
+	Address string
 	server  *http.Server
 	logger  logger.Logger
 }
 
-// Logger ...
-type Logger interface { // TODO
+type Handlers struct {
+	logger logger.Logger
+	api    *app.App
 }
 
-// Application ...
-type Application interface { // TODO
-}
-
-// NewServer ...
-func NewServer(logger logger.Logger, host, port string) *Server {
-	addr := net.JoinHostPort(host, port)
-	return &Server{
-		address: addr,
-		logger:  logger,
-	}
-}
-
-// Start ...
-func (s *Server) Start(ctx context.Context) error {
-	fmt.Println("http server start")
-	mux := http.NewServeMux()
-	mux.HandleFunc("/hello", s.loggingMiddleware(s.answerHello))
-	s.server = &http.Server{
-		Addr:         s.address,
+func NewServer(host string, log logger.Logger, api *app.App) *Server {
+	mux := route(log, api)
+	server := &http.Server{
+		Addr:         host,
 		Handler:      mux,
-		ReadTimeout:  10 * time.Second,
+		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	s.logger.Info("http")
+
+	return &Server{
+		Address: host,
+		server:  server,
+		logger:  log,
+	}
+}
+
+func route(l logger.Logger, app *app.App) *mux.Router {
+	handler := &Handlers{
+		logger: l,
+		api:    app,
+	}
+	router := mux.NewRouter()
+	router.HandleFunc("/hello", handler.helloWorld).Methods("GET")
+	router.HandleFunc("/create", handler.createEvent).Methods("POST")
+	router.HandleFunc("/update", handler.updateEvent).Methods("POST")
+	router.HandleFunc("/get", handler.getEvents).Methods("GET")
+	router.HandleFunc("/delete", handler.deleteEvent).Methods("POST")
+	router.Use(handler.loggingMiddleware)
+
+	return router
+}
+
+func (s *Server) Start(ctx context.Context) error {
 	err := s.server.ListenAndServe()
-	if err != nil {
-		fmt.Println(err)
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return errors.Wrap(err, "start server error")
 	}
-	<-ctx.Done()
-	s.logger.Info("HTTP server start")
+
 	return nil
 }
 
-// Stop ...
 func (s *Server) Stop(ctx context.Context) error {
+	if s.server == nil {
+		return errors.New("server is nil")
+	}
 	if err := s.server.Shutdown(ctx); err != nil {
-		return errors.Errorf("HTPP server error stoped: %s", err)
+		return errors.Wrap(err, "stop server error")
 	}
 	return nil
 }
 
-// answerHello ...
-func (s *Server) answerHello(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello World!"))
+func (h *Handlers) helloWorld(w http.ResponseWriter, r *http.Request) {
+	_, _ = w.Write([]byte("Hello World!"))
 }
 
-// TODO
+func (h *Handlers) createEvent(w http.ResponseWriter, r *http.Request) { //nolint:dupl
+	var event storage.Event
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	err := json.NewDecoder(r.Body).Decode(&event)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte("cannot decode to struct: " + err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	if err = h.api.CreateEvent(event); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte(err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte("Событие создано"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handlers) updateEvent(w http.ResponseWriter, r *http.Request) { //nolint:dupl
+	var event storage.Event
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	err := json.NewDecoder(r.Body).Decode(&event)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte("cannot decode to struct: " + err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	if err = h.api.UpdateEvent(event); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte(err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte("Событие обновлено"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handlers) getEvents(w http.ResponseWriter, r *http.Request) {
+	var event storage.Event
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	err := json.NewDecoder(r.Body).Decode(&event)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte("cannot decode to struct: " + err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	events, err := h.api.GetEvents(r.Context(), event.StartData, event.EndData)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte(err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	if events == nil && err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		_, err = w.Write([]byte("events not found: " + err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	if events == nil {
+		events = []storage.Event{}
+	}
+	result, err := json.Marshal(events)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte("cannot execute marshal: " + err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(result)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handlers) deleteEvent(w http.ResponseWriter, r *http.Request) { //nolint:dupl
+	var event storage.Event
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	err := json.NewDecoder(r.Body).Decode(&event)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte("cannot decode to struct: " + err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	if err = h.api.DeleteEvent(event); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err = w.Write([]byte(err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte("Событие удалено"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}

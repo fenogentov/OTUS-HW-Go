@@ -6,7 +6,7 @@ file = "logs/logrus.log"
 host = "localhost"
 port = "8081"
 
-[gRPCServer]
+[GRPCServer]
 host = "localhost"
 port = "50051"
 
@@ -15,5 +15,5 @@ enable = true
 user = "root"
 password = "12345"
 host = "127.0.0.1"
-port = "5432"
+port = "5438"
 nameDB = "calendar"

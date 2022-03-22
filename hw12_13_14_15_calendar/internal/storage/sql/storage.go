@@ -3,49 +3,35 @@ package sqlstorage
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
-	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
+	"hw12_13_14_15_calendar/internal/logger"
+	"hw12_13_14_15_calendar/internal/storage"
 
-	// _ "github.com/jackc/pgx/stdlib" .
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 )
 
 // Storage ...
 type Storage struct { // TODO
 	db     *sqlx.DB
-	logger logger.Logger
+	logger *logger.Logger
 }
 
 // New ...
-func New(logger logger.Logger, user, password, host, port, nameDB string) (*Storage, error) {
+func New(logger *logger.Logger, user, password, host, port, nameDB string) (*Storage, error) {
 	// "postgres://username:password@localhost:5432/database_name"
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		user, password, host, port, nameDB)
 
+	logger.Debug(connString)
 	// Create connection pool
 	db, err := sqlx.Connect("pgx", connString)
 	if err != nil {
 		logger.Error("error connect DB")
+		return nil, err
 	}
 
-	rows, err := db.Query("SELECT * FROM events")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		fmt.Println(rows)
-	}
-	// sqlStatement := `INSERT INTO tst (isbn, title, author, price)
-	//	VALUES ('qertu', 'jon@calhogu.oq', 'ontghanq', 55)`
-	//	_, err = db.Exec(sqlStatement)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
 	return &Storage{db: db, logger: logger}, nil
 }
 
@@ -62,60 +48,72 @@ func (s *Storage) Close(ctx context.Context) error {
 }
 
 // CreateEvent ...
-func (s *Storage) CreateEvent(evnt storage.Event) {
+func (s *Storage) CreateEvent(evnt storage.Event) error {
 	_, err := s.db.Exec(
-		`INSERT INTO events (id, title, startTime, endTime, description, userid) VALUES ($1, $2, $3, $4, $5, $6)`,
+		`INSERT INTO events (id, title, startTime, endTime, descript, userid) VALUES ($1, $2, $3, $4, $5, $6)`,
 		evnt.ID,
 		evnt.Title,
 		evnt.StartTime,
 		evnt.EndTime,
-		evnt.Description,
+		evnt.Descript,
 		evnt.UserID,
 	)
 	if err != nil {
-		fmt.Println(err)
-		s.logger.Error("error create event")
+		return err
 	}
+	return nil
 }
 
 // UpdateEvent ...
-func (s *Storage) UpdateEvent(evnt storage.Event) {
+func (s *Storage) UpdateEvent(evnt storage.Event) error {
 	_, err := s.db.Exec(
-		`UPDATE events SET (title, startTime, endTime, description, userid) = (
+		`UPDATE events SET (title, startTime, endTime, descript, userid) = (
 			$1, $2, $3, $4, $5) WHERE id=$6`,
 		evnt.Title,
 		evnt.StartTime,
 		evnt.EndTime,
-		evnt.Description,
+		evnt.Descript,
 		evnt.UserID,
 		evnt.ID,
 	)
 	if err != nil {
-		s.logger.Error("error update event")
+		return err
 	}
+	return nil
 }
 
 // DeleteEvent ...
-func (s *Storage) DeleteEvent(evnt storage.Event) {
+func (s *Storage) DeleteEvent(evnt storage.Event) error {
 	_, err := s.db.Exec(
 		`DELETE FROM events WHERE id=$1`,
 		evnt.ID,
 	)
 	if err != nil {
-		s.logger.Error("error delete event")
+		return err
 	}
+	return nil
 }
 
 // GetEvents ...
-func (s *Storage) GetEvents(startDT, endDT time.Time) {
-	result, err := s.db.Query(`SELECT id, title, startTime, endTime, description, userid
+func (s *Storage) GetEvents(timeStart, timeEnd time.Time) ([]storage.Event, error) {
+	rows, err := s.db.Queryx(`SELECT id, title, startTime, endTime, descript, userid
 			FROM events
 			WHERE startTime >=$1 AND startTime <=$2`,
-		startDT,
-		endDT,
+		timeStart,
+		timeEnd,
 	)
 	if err != nil {
-		s.logger.Error("error GetEvents")
+
+		return nil, err
 	}
-	defer result.Close()
+	defer rows.Close()
+	var events []storage.Event
+	for rows.Next() {
+		e := storage.Event{}
+		if err := rows.StructScan(&e); err != nil {
+			s.logger.Info(err.Error())
+		}
+		events = append(events, e)
+	}
+	return events, nil
 }

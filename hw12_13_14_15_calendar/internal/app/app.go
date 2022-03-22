@@ -1,57 +1,66 @@
 package app
 
-// import (
-// 	"time"
+import (
+	"context"
+	"hw12_13_14_15_calendar/internal/storage"
+	"time"
+)
 
-// 	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
-// )
+type App struct {
+	logger  Logger
+	storage Storage
+}
 
-// // App ...
-// type App struct { // TODO
-// 	storage *Storage
-// }
+type Logger interface {
+	Info(msg string)
+	Error(msg string)
+	Warn(msg string)
+	Debug(msg string)
+}
 
-// // Logger ...
-// type Logger interface {
-// 	Info(msg string)
-// 	Error(msg string)
-// 	Warn(msg string)
-// 	Debug(msg string)
-// }
+type Storage interface {
+	CreateEvent(e storage.Event) error
+	UpdateEvent(e storage.Event) error
+	DeleteEvent(e storage.Event) error
+	GetEvents(ctx context.Context, startData, endData time.Time) ([]storage.Event, error)
+}
 
-// // Storage ...
-// type Storage interface { // TODO
-// 	CreateEvent(evnt storage.Event)     // добавление события в хранилище;
-// 	UpdateEvent(evnt storage.Event)     // изменение события в хранилище;
-// 	DeleteEvent(evnt storage.Event)     // удаление события из хранилища;
-// 	GetEvents(startDT, endDT time.Time) // листинг событий;
-// }
+func New(logger Logger, storage Storage) *App {
+	return &App{
+		logger:  logger,
+		storage: storage,
+	}
+}
 
-// // New ...
-// func New(logger Logger, storage *Storage) *App {
-// 	return &App{}
-// }
+func (a *App) CreateEvent(e storage.Event) error {
+	if err := a.storage.CreateEvent(e); err != nil {
+		a.logger.Error(err.Error())
+		return err
+	}
+	return nil
+}
 
-// // CreateEvent ...
-// func (a *App) CreateEvent(e storage.Event) error {
-// 	// TODO
-// 	return nil
-// 	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
-// }
+func (a *App) UpdateEvent(e storage.Event) error {
+	if err := a.storage.UpdateEvent(e); err != nil {
+		a.logger.Error(err.Error())
+		return err
+	}
+	return nil
+}
 
-// // UpdateEvent ...
-// func (a *App) UpdateEvent(evnt storage.Event) {
+func (a *App) DeleteEvent(e storage.Event) error {
+	if err := a.storage.DeleteEvent(e); err != nil {
+		a.logger.Error(err.Error())
+		return err
+	}
+	return nil
+}
 
-// }
-
-// // DeleteEvent ...
-// func (a *App) DeleteEvent(evnt storage.Event) {
-
-// }
-
-// // GetEvents ...
-// func (a *App) GetEvents(startDT, endDT time.Time) {
-
-// }
-
-// // TODO
+func (a *App) GetEvents(ctx context.Context, startData, endData time.Time) ([]storage.Event, error) {
+	events, err := a.storage.GetEvents(ctx, startData, endData)
+	if err != nil {
+		a.logger.Error(err.Error())
+		return nil, err
+	}
+	return events, nil
+}

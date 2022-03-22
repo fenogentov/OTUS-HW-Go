@@ -4,6 +4,8 @@ package proto_event
 
 import (
 	context "context"
+//	"hw12_13_14_15_calendar/internal/storage"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -84,6 +86,7 @@ type UnimplementedCalendarServer struct {
 }
 
 func (UnimplementedCalendarServer) CreateEvent(context.Context, *Event) (*Event, error) {
+
 	return nil, status.Errorf(codes.Unimplemented, "method CreateEvent not implemented")
 }
 func (UnimplementedCalendarServer) UpdateEvent(context.Context, *Event) (*Event, error) {
