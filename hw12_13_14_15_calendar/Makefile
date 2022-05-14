@@ -34,4 +34,15 @@ lint: install-lint-deps
 migrate:
 	goose -dir=migrations postgres "user=root password=12345 dbname=calendar sslmode=disable" up
 
+env-pull:
+	docker-compose pull --include-deps
+
+env-up:
+	docker-compose up -d
+
+env-down:
+	docker-compose down --remove-orphans --volumes
+
+
 .PHONY: build run build-img run-img version test lint
+

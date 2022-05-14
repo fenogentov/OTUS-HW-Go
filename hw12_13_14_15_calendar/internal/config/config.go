@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"fmt"
@@ -42,7 +42,7 @@ func NewConfig(path string) (Config, error) {
 	if _, err := toml.DecodeFile(path, &conf); err != nil {
 		return Config{}, err
 	}
-	fmt.Println("Config: ", conf)
+	fmt.Printf("config: %+v\n", conf)
 	return conf, nil
 }
 

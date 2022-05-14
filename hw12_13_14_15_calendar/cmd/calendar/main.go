@@ -9,17 +9,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/config"
 	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/server/http"
 )
 
-//
-//
-
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "../hw12_13_14_15_calendar/configs/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "./internal/config/config.toml", "Path to configuration file")
 }
 
 func main() {
@@ -30,10 +28,11 @@ func main() {
 		return
 	}
 
-	config, err := NewConfig(configFile)
+	config, err := config.NewConfig(configFile)
 	if err != nil {
 		log.Fatalf("can't get config: %v", err)
 	}
+
 	logg := logger.New(config.Logger.File, config.Logger.Level)
 
 	//	memStorageEn := !config.DB.Enable
