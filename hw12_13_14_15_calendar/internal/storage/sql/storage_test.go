@@ -1,12 +1,14 @@
 package sqlstorage
 
 import (
+	"context"
 	"fmt"
 
-	"hw12_13_14_15_calendar/internal/logger"
-	"hw12_13_14_15_calendar/internal/storage"
 	"testing"
 	"time"
+
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/logger"
+	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
 )
 
 var testCases = []struct {
@@ -16,51 +18,82 @@ var testCases = []struct {
 	{
 		name: "Create Event One",
 		event: storage.Event{
-			ID:          1234,
-			Title:       "one event",
-			StartTime:   time.Now(),
-			EndTime:     time.Now().Add(time.Second * 30),
-			Description: "test One event",
-			UserID:      "qwerty",
+			ID:        1234,
+			Title:     "one event",
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(time.Second * 30),
+			Descript:  "test One event",
+			UserID:    "qwerty",
 		},
 	},
 	{
 		name: "Create Event Two",
 		event: storage.Event{
-			ID:          23455,
-			Title:       "two event",
-			StartTime:   time.Now(),
-			EndTime:     time.Now().Add(time.Second * 30),
-			Description: "test Two event",
-			UserID:      "qwerty",
+			ID:        2345,
+			Title:     "two event",
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(time.Second * 30),
+			Descript:  "test Two event",
+			UserID:    "qwerty",
 		},
 	},
 	{
 		name: "Create Event Three",
 		event: storage.Event{
-			ID:          23455,
-			Title:       "three event",
-			StartTime:   time.Now(),
-			EndTime:     time.Now().Add(time.Second * 30),
-			Description: "test Three event",
-			UserID:      "qwerty",
+			ID:        3456,
+			Title:     "three event",
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(time.Second * 30),
+			Descript:  "test Three event",
+			UserID:    "qwerty",
+		},
+	},
+	{
+		name: "Create Event 4",
+		event: storage.Event{
+			ID:        4567,
+			Title:     "4 event",
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(time.Second * 30),
+			Descript:  "test Three event",
+			UserID:    "qwerty",
+		},
+	},
+	{
+		name: "Update Event 1",
+		event: storage.Event{
+			ID:        1234,
+			Title:     "5 event",
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(time.Second * 30),
+			Descript:  "test Three event",
+			UserID:    "qwerty",
 		},
 	},
 }
 
-func TestStorage(t *testing.T) {
+func TestStorageSQL(t *testing.T) {
 	logg := logger.New("logrus.log", "DEBUG")
-	t.Run(testCases[0].name, func(t *testing.T) {
 
-		tStorage, _ := New(*logg, "postgres", "Fav660755", "127.0.0.1", "5432", "calendar")
+	t.Run("Storage SQL", func(t *testing.T) {
+		tStorage := New(logg, "127.0.0.1", "5432", "calendar", "root", "12345")
+		err := tStorage.Connect(context.Background())
+		fmt.Println(err)
+
+		tStorage.CreateEvent(storage.Event{})
 		tStorage.CreateEvent(testCases[0].event)
 		tStorage.CreateEvent(testCases[1].event)
+		tStorage.CreateEvent(testCases[2].event)
+
 		tStorage.UpdateEvent(storage.Event{})
-		tStorage.UpdateEvent(testCases[2].event)
-		tStorage.DeleteEvent(testCases[0].event)
+		tStorage.UpdateEvent(testCases[3].event)
+		tStorage.UpdateEvent(testCases[4].event)
+
 		tStorage.DeleteEvent(storage.Event{})
-		fmt.Println(tStorage)
-		//		fmt.Printf("%+v\n", tStorage.GetEvents(time.Now(), time.Now().Add(time.Duration(time.Second*35))))
+		tStorage.DeleteEvent(testCases[3].event)
+		tStorage.DeleteEvent(testCases[4].event)
+
+		fmt.Printf("%+v\n", tStorage.GetEvents(time.Now(), time.Now().Add(time.Second*35)))
 	})
 
 }

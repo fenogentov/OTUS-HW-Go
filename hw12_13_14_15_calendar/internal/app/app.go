@@ -1,12 +1,6 @@
 package app
 
-// import (
-// 	"time"
-
-// 	"github.com/fenogentov/OTUS-HW-Go/hw12_13_14_15_calendar/internal/storage"
-// )
-
-// // App ...
+// App ...
 // type App struct { // TODO
 // 	storage *Storage
 // }

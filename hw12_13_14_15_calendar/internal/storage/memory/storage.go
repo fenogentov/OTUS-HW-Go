@@ -27,6 +27,10 @@ func (s *Storage) CreateEvent(evnt storage.Event) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if (evnt == storage.Event{}) {
+		return
+	}
+
 	//	evnt.ID = uuid.New()
 	//	s.events[evnt.ID] = evnt
 
@@ -38,13 +42,23 @@ func (s *Storage) UpdateEvent(evnt storage.Event) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.events[evnt.ID] = evnt
+	if (evnt == storage.Event{}) {
+		return
+	}
+
+	if _, ok := s.events[evnt.ID]; ok {
+		s.events[evnt.ID] = evnt
+	}
 }
 
 // DeleteEvent ...
 func (s *Storage) DeleteEvent(evnt storage.Event) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if (evnt == storage.Event{}) {
+		return
+	}
 
 	delete(s.events, evnt.ID)
 }
@@ -63,5 +77,3 @@ func (s *Storage) GetEvents(startDT, endDT time.Time) []storage.Event {
 
 	return events
 }
-
-// TODO

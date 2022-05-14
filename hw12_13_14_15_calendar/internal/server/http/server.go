@@ -45,20 +45,20 @@ func (s *Server) Start(ctx context.Context) error {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	s.logger.Info("http")
+	s.logger.Info("http server start")
 	err := s.server.ListenAndServe()
 	if err != nil {
 		fmt.Println(err)
 	}
 	<-ctx.Done()
-	s.logger.Info("HTTP server start")
+	s.logger.Info("http server stop")
 	return nil
 }
 
 // Stop ...
 func (s *Server) Stop(ctx context.Context) error {
 	if err := s.server.Shutdown(ctx); err != nil {
-		return errors.Errorf("HTPP server error stoped: %s", err)
+		return errors.Errorf("http server error stoped: %s", err)
 	}
 	return nil
 }
@@ -67,5 +67,3 @@ func (s *Server) Stop(ctx context.Context) error {
 func (s *Server) answerHello(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello World!"))
 }
-
-// TODO
