@@ -57,11 +57,14 @@ func route(l logger.Logger, app *app.App) *mux.Router {
 }
 
 func (s *Server) Start(ctx context.Context) error {
+	s.logger.Info("http server start")
 	err := s.server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return errors.Wrap(err, "start server error")
 	}
 
+	<-ctx.Done()
+	s.logger.Info("http server stop")
 	return nil
 }
 
@@ -70,7 +73,7 @@ func (s *Server) Stop(ctx context.Context) error {
 		return errors.New("server is nil")
 	}
 	if err := s.server.Shutdown(ctx); err != nil {
-		return errors.Wrap(err, "stop server error")
+		return errors.Errorf("http server error stoped: %s", err)
 	}
 	return nil
 }

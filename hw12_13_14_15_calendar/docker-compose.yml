@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  calendar:
+    image: postgres:14.2
+    container_name: pg_calendar
+    environment:
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_USER=root
+      - POSTGRES_DB=calendar
+    volumes:
+      - pg_calendar:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:5432:5432
+
+volumes:
+  pg_calendar:

@@ -18,6 +18,11 @@ type Logger interface {
 	Debug(msg string)
 }
 
+// App ...
+// type App struct { // TODO
+// 	storage *Storage
+// }
+
 type Storage interface {
 	CreateEvent(e storage.Event) error
 	UpdateEvent(e storage.Event) error

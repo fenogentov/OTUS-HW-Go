@@ -1,6 +1,7 @@
 package memorystorage
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -25,7 +26,7 @@ var testCases = []struct {
 	{
 		name: "Create Event Two",
 		event: storage.Event{
-			ID:        23455,
+			ID:        2345,
 			Title:     "two event",
 			StartTime: time.Now(),
 			EndTime:   time.Now().Add(time.Second * 30),
@@ -36,8 +37,30 @@ var testCases = []struct {
 	{
 		name: "Create Event Three",
 		event: storage.Event{
-			ID:        23455,
+			ID:        3456,
 			Title:     "three event",
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(time.Second * 30),
+			Descript:  "test Three event",
+			UserID:    "qwerty",
+		},
+	},
+	{
+		name: "Create Event 4",
+		event: storage.Event{
+			ID:        4567,
+			Title:     "4 event",
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(time.Second * 30),
+			Descript:  "test Three event",
+			UserID:    "qwerty",
+		},
+	},
+	{
+		name: "Update Event 1",
+		event: storage.Event{
+			ID:        1234,
+			Title:     "5 event",
 			StartTime: time.Now(),
 			EndTime:   time.Now().Add(time.Second * 30),
 			Descript:  "test Three event",
@@ -46,16 +69,22 @@ var testCases = []struct {
 	},
 }
 
-func TestStorage(t *testing.T) {
+func TestStorageMemory(t *testing.T) {
 	t.Run("Storage Memory", func(t *testing.T) {
 		tStorage := New()
 		tStorage.CreateEvent(storage.Event{})
 		tStorage.CreateEvent(testCases[0].event)
 		tStorage.CreateEvent(testCases[1].event)
+		tStorage.CreateEvent(testCases[2].event)
+
 		tStorage.UpdateEvent(storage.Event{})
-		tStorage.UpdateEvent(testCases[2].event)
-		tStorage.DeleteEvent(testCases[0].event)
+		tStorage.UpdateEvent(testCases[3].event)
+		tStorage.UpdateEvent(testCases[4].event)
+
 		tStorage.DeleteEvent(storage.Event{})
-		//		fmt.Printf("%+v\n", tStorage.GetEvents(time.Now(), time.Now().Add(time.Second*35)))
+		tStorage.DeleteEvent(testCases[3].event)
+		tStorage.DeleteEvent(testCases[4].event)
+
+		fmt.Printf("%+v\n", tStorage.GetEvents(time.Now(), time.Now().Add(time.Second*35)))
 	})
 }

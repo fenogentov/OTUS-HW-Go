@@ -1,6 +1,8 @@
-package main
+package config
 
 import (
+	"fmt"
+
 	"github.com/BurntSushi/toml"
 )
 
@@ -33,11 +35,11 @@ type gRPCServerConf struct {
 // DBConf ...
 type DBConf struct {
 	Enable   bool
-	User     string
-	Password string
 	Host     string
 	Port     string
 	NameDB   string
+	User     string
+	Password string
 }
 
 // NewConfig parsing config file.
@@ -46,5 +48,8 @@ func NewConfig(path string) (Config, error) {
 	if _, err := toml.DecodeFile(path, &conf); err != nil {
 		return Config{}, err
 	}
+
+	fmt.Printf("config: %+v\n", conf)
+
 	return conf, nil
 }

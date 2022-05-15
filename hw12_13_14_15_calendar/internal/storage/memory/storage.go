@@ -1,6 +1,7 @@
 package memorystorage
 
 import (
+	"errors"
 	"sync"
 	"time"
 
@@ -27,6 +28,10 @@ func (s *Storage) CreateEvent(evnt storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if (evnt == storage.Event{}) {
+		return errors.New("error CreateEvent: empty event")
+	}
+
 	//	evnt.ID = uuid.New()
 	//	s.events[evnt.ID] = evnt
 
@@ -38,7 +43,17 @@ func (s *Storage) CreateEvent(evnt storage.Event) error {
 func (s *Storage) UpdateEvent(evnt storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if (evnt == storage.Event{}) {
+		return errors.New("error UpdateEvent: empty event")
+	}
+
+	if _, ok := s.events[evnt.ID]; !ok {
+		return errors.New("error UpdateEvent: defunct event")
+	}
+
 	s.events[evnt.ID] = evnt
+
 	return nil
 }
 
@@ -46,7 +61,13 @@ func (s *Storage) UpdateEvent(evnt storage.Event) error {
 func (s *Storage) DeleteEvent(evnt storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if (evnt == storage.Event{}) {
+		return errors.New("error DeleteEvent: empty event")
+	}
+
 	delete(s.events, evnt.ID)
+
 	return nil
 }
 
@@ -54,6 +75,7 @@ func (s *Storage) DeleteEvent(evnt storage.Event) error {
 func (s *Storage) GetEvents(startDT, endDT time.Time) ([]storage.Event, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	var events []storage.Event
 	for _, e := range s.events {
 		if e.StartTime.Second() >= startDT.Second() && e.EndTime.Second() <= endDT.Second() {
@@ -62,5 +84,3 @@ func (s *Storage) GetEvents(startDT, endDT time.Time) ([]storage.Event, error) {
 	}
 	return events, nil
 }
-
-// TODO
