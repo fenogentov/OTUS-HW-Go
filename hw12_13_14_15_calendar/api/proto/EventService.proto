@@ -13,7 +13,7 @@ service Calendar{
 	rpc CreateEvent (Event) returns (Event){}
 	rpc UpdateEvent (Event) returns (Event){}
 	rpc DeleteEvent(Event) returns (Event){}
-	rpc GetEvents (Event) returns (Event){}
+	rpc GetEvents (StartTime,EndTime) returns ([]Event){}
 }
 
 message Event {
