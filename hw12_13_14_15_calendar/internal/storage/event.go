@@ -6,10 +6,10 @@ import (
 
 // Event ...
 type Event struct {
-	ID        int64     // uuid.UUID //- уникальный идентификатор события (можно воспользоваться UUID);
-	Title     string    // * Заголовок - короткий текст;
-	StartTime time.Time // * Дата и время события;
-	EndTime   time.Time // * Длительность события (или дата и время окончания);
-	Descript  string    // * Описание события - длинный текст, опционально;
-	UserID    string    // * ID пользователя, владельца события;
+	ID        int64     `json:"id"`       // uuid.UUID //- уникальный идентификатор события (можно воспользоваться UUID);
+	Title     string    `json:"title"`    // * Заголовок - короткий текст;
+	StartTime time.Time `json:"start"`    // * Дата и время события;
+	EndTime   time.Time `json:"end"`      // * Длительность события (или дата и время окончания);
+	Descript  string    `json:"descript"` // * Описание события - длинный текст, опционально;
+	User      string    `json:"user"`     // * ID пользователя, владельца события;
 }

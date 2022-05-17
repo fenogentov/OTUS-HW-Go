@@ -1,7 +1,10 @@
 package memorystorage
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,63 +27,72 @@ func New() *Storage {
 }
 
 // CreateEvent ...
-func (s *Storage) CreateEvent(evnt storage.Event) error {
+func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if (evnt == storage.Event{}) {
-		return errors.New("error CreateEvent: empty event")
+	if _, ok := s.events[event.ID]; ok {
+		e := fmt.Sprintf("exists event with id=%d", event.ID)
+		return errors.New(e)
 	}
 
-	//	evnt.ID = uuid.New()
-	//	s.events[evnt.ID] = evnt
+	if m, ok := storage.EnoughData(event); !ok {
+		m := strings.Join(m, ", ")
+		return errors.New("not enough data: [" + m + "]")
+	}
 
-	s.events[evnt.ID] = evnt
+	s.events[event.ID] = event
 	return nil
 }
 
 // UpdateEvent ...
-func (s *Storage) UpdateEvent(evnt storage.Event) error {
+func (s *Storage) UpdateEvent(ctx context.Context, event storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if (evnt == storage.Event{}) {
-		return errors.New("error UpdateEvent: empty event")
+	if m, ok := storage.EnoughData(event); !ok {
+		m := strings.Join(m, ", ")
+		return errors.New("not enough data: [" + m + "]")
 	}
 
-	if _, ok := s.events[evnt.ID]; !ok {
-		return errors.New("error UpdateEvent: defunct event")
+	if _, ok := s.events[event.ID]; !ok {
+		e := fmt.Sprintf("no such event id=%d", event.ID)
+		return errors.New(e)
 	}
 
-	s.events[evnt.ID] = evnt
+	s.events[event.ID] = event
 
 	return nil
 }
 
 // DeleteEvent ...
-func (s *Storage) DeleteEvent(evnt storage.Event) error {
+func (s *Storage) DeleteEvent(ctx context.Context, event storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if (evnt == storage.Event{}) {
-		return errors.New("error DeleteEvent: empty event")
+	if _, ok := s.events[event.ID]; !ok {
+		e := fmt.Sprintf("no such event id=%d", event.ID)
+		return errors.New(e)
 	}
 
-	delete(s.events, evnt.ID)
+	delete(s.events, event.ID)
 
 	return nil
 }
 
 // GetEvents ...
-func (s *Storage) GetEvents(startDT, endDT time.Time) ([]storage.Event, error) {
+func (s *Storage) GetEvents(ctx context.Context, start, end time.Time) (result []storage.Event, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	var events []storage.Event
+	if (start == time.Time{} || end == time.Time{}) {
+		return result, errors.New("two time values must be specified")
+	}
+
 	for _, e := range s.events {
-		if e.StartTime.Second() >= startDT.Second() && e.EndTime.Second() <= endDT.Second() {
-			events = append(events, e)
+		if e.StartTime.Before(end) && e.EndTime.After(start) {
+			result = append(result, e)
 		}
 	}
-	return events, nil
+	return
 }

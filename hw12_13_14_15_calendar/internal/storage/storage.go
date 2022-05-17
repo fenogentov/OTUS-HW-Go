@@ -1,12 +1,15 @@
 package storage
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 var ()
 
 type Storage interface {
-	CreateEvent(e Event) error
-	UpdateEvent(e Event) error
-	DeleteEvent(e Event) error
-	GetEvents(startData, endData time.Time) ([]Event, error)
+	CreateEvent(ctx context.Context, e Event) error
+	UpdateEvent(ctx context.Context, e Event) error
+	DeleteEvent(ctx context.Context, e Event) error
+	GetEvents(ctx context.Context, start, end time.Time) ([]Event, error)
 }

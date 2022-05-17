@@ -38,7 +38,7 @@ lint: install-lint-deps
 	golangci-lint run ./...
 
 migrate:
-	goose -dir=migrations postgres "user=root password=12345 dbname=calendar host=127.0.0.1 port=5438 sslmode=disable" up
+	goose -dir=migrations postgres "user=root password=12345 dbname=calendar host=127.0.0.1 port=5432 sslmode=disable" up
 
 env-pull:
 	docker-compose pull --include-deps

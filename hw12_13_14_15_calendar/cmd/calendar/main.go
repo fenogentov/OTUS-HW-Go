@@ -12,9 +12,13 @@ import (
 	"hw12_13_14_15_calendar/internal/config"
 	"hw12_13_14_15_calendar/internal/logger"
 	httpserver "hw12_13_14_15_calendar/internal/server/http"
+	"hw12_13_14_15_calendar/internal/storage"
 	storagememory "hw12_13_14_15_calendar/internal/storage/memory"
 	storagesql "hw12_13_14_15_calendar/internal/storage/sql"
 )
+
+//	storagememory "hw12_13_14_15_calendar/internal/storage/memory"
+//	storagesql "hw12_13_14_15_calendar/internal/storage/sql"
 
 var configFile string
 
@@ -41,37 +45,33 @@ func main() {
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
+	logg.Info("calendar is running...")
+
 	storagememoryEnable := config.DB.Enable
+	var strg storage.Storage
 	if storagememoryEnable {
-		storage, err := storagesql.New(logg, config.DB.Host, config.DB.Port, config.DB.NameDB, config.DB.User, config.DB.Password)
+		strg, err = storagesql.New(logg, config.DB.Host, config.DB.Port, config.DB.NameDB, config.DB.User, config.DB.Password)
 		if err != nil {
 			logg.Error(err.Error())
 			storagememoryEnable = false
 		}
-		storage.GetEvents(time.Now(), time.Now().Add(time.Second*35))
 	}
 	if !storagememoryEnable {
-		storage := storagememory.New()
-		storage.GetEvents(time.Now(), time.Now().Add(time.Second*35))
+		strg = storagememory.New()
 	}
 
-	httpServer := httpserver.NewServer(*logg, config.HTTPServer.Host, config.HTTPServer.Port)
+	httpServer := httpserver.NewServer(*logg, config.HTTPServer.Host, config.HTTPServer.Port, strg)
 
 	go func() {
 		<-ctx.Done()
 
-		ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
+		ctxTimeout, cancelTimeout := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancelTimeout()
 
-		if err := httpServer.Stop(ctxTimeout); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
-		}
+		httpServer.Stop(ctxTimeout)
 	}()
 
-	logg.Info("calendar is running...")
-
 	if err := httpServer.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		defer os.Exit(1)
 	}

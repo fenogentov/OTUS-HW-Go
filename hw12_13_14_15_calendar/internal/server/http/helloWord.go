@@ -1,12 +1,11 @@
 package http_server
 
 import (
-	"log"
 	"net/http"
 )
 
-// answerHello ...
-func answerHello(w http.ResponseWriter, r *http.Request) {
-	log.Println("answerHello()")
+// helloWorld ...
+func (s *Server) helloWorld(w http.ResponseWriter, r *http.Request) {
+	s.logger.Debug("/hello")
 	w.Write([]byte("Hello World!"))
 }

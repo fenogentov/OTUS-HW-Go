@@ -4,97 +4,116 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"strings"
 	"time"
 
 	"hw12_13_14_15_calendar/internal/logger"
 	"hw12_13_14_15_calendar/internal/storage"
 
-	_ "github.com/jackc/pgx/stdlib"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type config struct {
-	host     string
-	port     string
-	baseName string
-	user     string
-	password string
-}
+// type config struct {
+// 	host     string
+// 	port     string
+// 	baseName string
+// 	user     string
+// 	password string
+// }
 
 // Storage ...
-type StorageDB struct {
-	db     *sqlx.DB
-	config config
+type Storage struct {
+	pgpool *pgxpool.Pool
 	logger *logger.Logger
 }
 
 // New ...
-func New(logger *logger.Logger, host, port, baseName, user, password string) (*StorageDB, error) {
-
+func New(logger *logger.Logger, host, port, baseName, user, password string) (storage.Storage, error) {
 	// "postgres://username:password@localhost:5432/database_name"
-	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		user, password, host, port, baseName)
-	// Create connection pool
-	db, err := sqlx.Connect("pgx", connString)
+	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, port, baseName)
+	pgp, err := newPool(context.Background(), connString)
 	if err != nil {
 		return nil, err
 	}
 
-	storage := &StorageDB{
-		db:     db,
-		config: config{host: host, port: port, baseName: baseName, user: user, password: password},
+	storage := &Storage{
+		pgpool: pgp,
 		logger: logger,
 	}
 
 	return storage, nil
 }
 
-// Connect ...
-func (s *StorageDB) Connect(ctx context.Context) error {
-	return nil
-}
+func newPool(ctx context.Context, connString string) (*pgxpool.Pool, error) {
+	config, err := pgxpool.ParseConfig(connString)
+	if err != nil {
+		return nil, err
+	}
 
-// Close ...
-func (s *StorageDB) Close(ctx context.Context) error {
-	return nil
+	config.ConnConfig.RuntimeParams["timezone"] = "UTC"
+	config.ConnConfig.RuntimeParams["application_name"] = "Calendar"
+
+	p, err := pgxpool.ConnectConfig(ctx, config)
+	if err != nil {
+		return nil, fmt.Errorf("pg.NewPool: %w", err)
+	}
+
+	return p, nil
 }
 
 // CreateEvent ...
-func (s *StorageDB) CreateEvent(evnt storage.Event) error {
-	if (evnt == storage.Event{}) {
-		return errors.New("error CreateEvent: empty event")
+func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
+	if m, ok := storage.EnoughData(event); !ok {
+		m := strings.Join(m, ", ")
+		return errors.New("not enough data: [" + m + "]")
 	}
 
-	_, err := s.db.Exec(
-		`INSERT INTO events (id, title, starttime, endtime, descript, userid) VALUES ($1, $2, $3, $4, $5, $6)`,
-		evnt.ID,
-		evnt.Title,
-		evnt.StartTime,
-		evnt.EndTime,
-		evnt.Descript,
-		evnt.UserID,
+	// var id int64
+	// err := s.pgpool.QueryRow(ctx, `SELECT id FROM events WHERE id=$1`, event.ID).Scan(&id)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// if id != 0 {
+	// 	e := fmt.Sprintf("exists event with id=%d", event.ID)
+	// 	return errors.New(e)
+	// }
+
+	sql := `INSERT INTO events (id, title, starttime, endtime, descript, userid) 
+				VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := s.pgpool.Exec(ctx, sql,
+		event.ID,
+		event.Title,
+		event.StartTime,
+		event.EndTime,
+		event.Descript,
+		event.User,
 	)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // UpdateEvent ...
-func (s *StorageDB) UpdateEvent(evnt storage.Event) error {
-	if (evnt == storage.Event{}) {
-		return errors.New("error UpdateEvent: empty event")
+func (s *Storage) UpdateEvent(ctx context.Context, event storage.Event) error {
+	if m, ok := storage.EnoughData(event); !ok {
+		m := strings.Join(m, ", ")
+		return errors.New("not enough data: [" + m + "]")
 	}
 
-	_, err := s.db.Exec(
-		`UPDATE events SET (title, starttime, endtime, descript, userid) = (
-			$1, $2, $3, $4, $5) WHERE id=$6`,
-		evnt.Title,
-		evnt.StartTime,
-		evnt.EndTime,
-		evnt.Descript,
-		evnt.UserID,
-		evnt.ID,
+	sql := `UPDATE events SET (title, starttime, endtime, descript, userid) = 
+				($1, $2, $3, $4, $5) WHERE id=$6`
+	_, err := s.pgpool.Exec(ctx, sql,
+		event.Title,
+		event.StartTime,
+		event.EndTime,
+		event.Descript,
+		event.User,
+		event.ID,
 	)
 	if err != nil {
 		return err
@@ -104,42 +123,73 @@ func (s *StorageDB) UpdateEvent(evnt storage.Event) error {
 }
 
 // DeleteEvent ...
-func (s *StorageDB) DeleteEvent(evnt storage.Event) error {
-	if (evnt == storage.Event{}) {
-		return errors.New("error DeleteEvent: empty event")
+func (s *Storage) DeleteEvent(ctx context.Context, event storage.Event) error {
+	if event.ID == 0 {
+		e := fmt.Sprintf("no such event id=%d", event.ID)
+		return errors.New(e)
 	}
 
-	_, err := s.db.Exec(
-		`DELETE FROM events WHERE id=$1`,
-		evnt.ID,
+	var id int64
+	err := s.pgpool.QueryRow(ctx, `SELECT id FROM events WHERE id=$1`, event.ID).Scan(&id)
+	if err != nil {
+		return err
+	}
+
+	if id == 0 {
+		e := fmt.Sprintf("no such event id=%d", event.ID)
+		return errors.New(e)
+	}
+
+	sql := `DELETE FROM events WHERE id=$1`
+	_, err = s.pgpool.Exec(ctx, sql,
+		event.ID,
 	)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // GetEvents ...
-func (s *StorageDB) GetEvents(startDT, endDT time.Time) ([]storage.Event, error) {
-	rows, err := s.db.Query(`SELECT * FROM events
-			WHERE startTime >=$1 AND startTime <=$2`,
-		startDT,
-		endDT,
-	)
-	if err != nil {
-		s.logger.Error("error getevebt event")
-	}
-	defer rows.Close()
+func (s *Storage) GetEvents(ctx context.Context, start, end time.Time) (result []storage.Event, err error) {
+	sql := `SELECT * FROM events WHERE startTime >=$1 AND startTime <=$2`
 
-	var events []storage.Event
-	for rows.Next() {
-		e := storage.Event{}
-		err = rows.Scan(&e.ID, &e.Title, &e.StartTime, &e.EndTime, &e.Descript, &e.UserID)
+	rows, err := s.pgpool.Query(ctx, sql,
+		start,
+		end,
+	)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		r, err := nextRow(rows)
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			return nil, err
 		}
-		events = append(events, e)
+		result = append(result, *r)
 	}
 
-	return events, nil
+	return
+}
+
+func nextRow(rows pgx.Rows) (event *storage.Event, err error) {
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+		return nil, io.EOF
+	}
+
+	r := storage.Event{}
+	if err := rows.Scan(&r.ID, &r.Title, &r.StartTime, &r.EndTime, &r.Descript, &r.User); err != nil {
+		return nil, err
+	}
+
+	return &r, nil
 }

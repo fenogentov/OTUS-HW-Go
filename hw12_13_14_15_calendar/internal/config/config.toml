@@ -15,5 +15,5 @@ enable = true
 user = "root"
 password = "12345"
 host = "127.0.0.1"
-port = "5438"
+port = "5432"
 nameDB = "calendar"
