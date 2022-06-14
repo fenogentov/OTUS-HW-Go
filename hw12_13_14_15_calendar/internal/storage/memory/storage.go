@@ -2,9 +2,7 @@ package memorystorage
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -32,13 +30,12 @@ func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
 	defer s.mu.Unlock()
 
 	if _, ok := s.events[event.ID]; ok {
-		e := fmt.Sprintf("exists event with id=%d", event.ID)
-		return errors.New(e)
+		return fmt.Errorf("exists event with id=%d", event.ID)
 	}
 
 	if m, ok := storage.EnoughData(event); !ok {
-		m := strings.Join(m, ", ")
-		return errors.New("not enough data: [" + m + "]")
+		//	m := strings.Join(m, ", ")
+		return fmt.Errorf("not enough data: %+v", m)
 	}
 
 	s.events[event.ID] = event
@@ -51,13 +48,12 @@ func (s *Storage) UpdateEvent(ctx context.Context, event storage.Event) error {
 	defer s.mu.Unlock()
 
 	if m, ok := storage.EnoughData(event); !ok {
-		m := strings.Join(m, ", ")
-		return errors.New("not enough data: [" + m + "]")
+		//	m := strings.Join(m, ", ")
+		return fmt.Errorf("not enough data: %+v", m)
 	}
 
 	if _, ok := s.events[event.ID]; !ok {
-		e := fmt.Sprintf("no such event id=%d", event.ID)
-		return errors.New(e)
+		return fmt.Errorf("no such event id=%d", event.ID)
 	}
 
 	s.events[event.ID] = event
@@ -71,8 +67,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, event storage.Event) error {
 	defer s.mu.Unlock()
 
 	if _, ok := s.events[event.ID]; !ok {
-		e := fmt.Sprintf("no such event id=%d", event.ID)
-		return errors.New(e)
+		return fmt.Errorf("no such event id=%d", event.ID)
 	}
 
 	delete(s.events, event.ID)
@@ -86,7 +81,7 @@ func (s *Storage) GetEvents(ctx context.Context, start, end time.Time) (result [
 	defer s.mu.Unlock()
 
 	if (start == time.Time{} || end == time.Time{}) {
-		return result, errors.New("two time values must be specified")
+		return result, fmt.Errorf("two time values must be specified")
 	}
 
 	for _, e := range s.events {

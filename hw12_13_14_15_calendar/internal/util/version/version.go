@@ -1,4 +1,4 @@
-package main
+package version
 
 import (
 	"encoding/json"
@@ -8,11 +8,11 @@ import (
 
 var (
 	release   = "0.0"
-	buildDate = "2021/06/07"
+	buildDate = "2022/06/07"
 	gitHash   = "1cdfgv"
 )
 
-func printVersion() {
+func Print() {
 	if err := json.NewEncoder(os.Stdout).Encode(struct {
 		Release   string
 		BuildDate string

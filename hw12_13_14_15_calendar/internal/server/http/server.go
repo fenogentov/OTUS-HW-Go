@@ -1,10 +1,10 @@
-package http_server
+package httpserver
 
 import (
 	"context"
 	"encoding/json"
-	"hw12_13_14_15_calendar/internal/logger"
 	"hw12_13_14_15_calendar/internal/storage"
+	"hw12_13_14_15_calendar/internal/util/logger"
 	"net"
 	"net/http"
 	"time"

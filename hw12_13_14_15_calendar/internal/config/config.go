@@ -1,7 +1,7 @@
 package config
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/BurntSushi/toml"
 )
@@ -49,7 +49,7 @@ func NewConfig(path string) (Config, error) {
 		return Config{}, err
 	}
 
-	fmt.Printf("config: %+v\n", conf)
+	log.Printf("config: %+v\n", conf)
 
 	return conf, nil
 }

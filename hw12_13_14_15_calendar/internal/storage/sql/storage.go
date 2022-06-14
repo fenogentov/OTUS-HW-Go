@@ -2,14 +2,12 @@ package sqlstorage
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
-	"hw12_13_14_15_calendar/internal/logger"
 	"hw12_13_14_15_calendar/internal/storage"
+	"hw12_13_14_15_calendar/internal/util/logger"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -35,7 +33,7 @@ func New(logger *logger.Logger, host, port, baseName, user, password string) (st
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, port, baseName)
 	pgp, err := newPool(context.Background(), connString)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed create sql storage: %w", err)
 	}
 
 	storage := &Storage{
@@ -66,8 +64,8 @@ func newPool(ctx context.Context, connString string) (*pgxpool.Pool, error) {
 // CreateEvent ...
 func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
 	if m, ok := storage.EnoughData(event); !ok {
-		m := strings.Join(m, ", ")
-		return errors.New("not enough data: [" + m + "]")
+		// m := strings.Join(m, ", ")
+		return fmt.Errorf("not enough data: %+v", m)
 	}
 
 	// var id int64
@@ -92,7 +90,7 @@ func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
 		event.User,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed create sql event: %w", err)
 	}
 
 	return nil
@@ -101,8 +99,8 @@ func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) error {
 // UpdateEvent ...
 func (s *Storage) UpdateEvent(ctx context.Context, event storage.Event) error {
 	if m, ok := storage.EnoughData(event); !ok {
-		m := strings.Join(m, ", ")
-		return errors.New("not enough data: [" + m + "]")
+		// m := strings.Join(m, ", ")
+		return fmt.Errorf("not enough data: %+v", m)
 	}
 
 	sql := `UPDATE events SET (title, starttime, endtime, descript, userid) = 
@@ -116,7 +114,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, event storage.Event) error {
 		event.ID,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed update sql event: %w", err)
 	}
 
 	return nil
@@ -125,19 +123,17 @@ func (s *Storage) UpdateEvent(ctx context.Context, event storage.Event) error {
 // DeleteEvent ...
 func (s *Storage) DeleteEvent(ctx context.Context, event storage.Event) error {
 	if event.ID == 0 {
-		e := fmt.Sprintf("no such event id=%d", event.ID)
-		return errors.New(e)
+		return fmt.Errorf("cannot be id=%d", event.ID)
 	}
 
 	var id int64
 	err := s.pgpool.QueryRow(ctx, `SELECT id FROM events WHERE id=$1`, event.ID).Scan(&id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed delete sql event: %w", err)
 	}
 
 	if id == 0 {
-		e := fmt.Sprintf("no such event id=%d", event.ID)
-		return errors.New(e)
+		return fmt.Errorf("no such event id=%d", event.ID)
 	}
 
 	sql := `DELETE FROM events WHERE id=$1`
@@ -145,7 +141,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, event storage.Event) error {
 		event.ID,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed delete sql event: %w", err)
 	}
 
 	return nil
@@ -161,7 +157,7 @@ func (s *Storage) GetEvents(ctx context.Context, start, end time.Time) (result [
 	)
 	defer rows.Close()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed get sql events: %w", err)
 	}
 
 	for {
@@ -170,7 +166,7 @@ func (s *Storage) GetEvents(ctx context.Context, start, end time.Time) (result [
 			break
 		}
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed get sql events: %w", err)
 		}
 		result = append(result, *r)
 	}

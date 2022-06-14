@@ -6,8 +6,8 @@ import (
 	"log"
 	"net"
 
-	"hw12_13_14_15_calendar/internal/logger"
 	pb "hw12_13_14_15_calendar/internal/server/grpc/proto"
+	"hw12_13_14_15_calendar/internal/util/logger"
 
 	"google.golang.org/grpc"
 )

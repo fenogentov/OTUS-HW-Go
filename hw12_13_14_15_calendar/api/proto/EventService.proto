@@ -8,12 +8,13 @@ option go_package=".;proto_event";
                                             // создано в путь_создания_grpc+<путь A> = go/tst
 
 import "api/proto/google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 service Calendar{
-	rpc CreateEvent (Event) returns (Event){}
-	rpc UpdateEvent (Event) returns (Event){}
-	rpc DeleteEvent(Event) returns (Event){}
-	rpc GetEvents (StartTime,EndTime) returns ([]Event){}
+	rpc CreateEvent (Event) returns (google.protobuf.Empty) {}
+	rpc UpdateEvent (Event) returns (google.protobuf.Empty) {}
+	rpc DeleteEvent(Event) returns (google.protobuf.Empty) {}
+	rpc GetEvents (Interval) returns (EventsResponse) {}
 }
 
 message Event {
@@ -22,7 +23,17 @@ message Event {
 	google.protobuf.Timestamp 	StartTime   = 3; // * Дата и время события;
 	google.protobuf.Timestamp 	EndTime    	= 4; // * Длительность события (или дата и время окончания);
 	string 						Descript	= 5; // * Описание события - длинный текст, опционально;
-	string 						UserID      = 6; // * ID пользователя, владельца события;
+	string 						User      	= 6; // * ID пользователя, владельца события;
 }
+
+message Interval {
+	google.protobuf.Timestamp 	StartTime   = 1; // * Дата и время начала;
+	google.protobuf.Timestamp 	EndTime    	= 2; // * Дата и время окончания;
+
+}
+
+message EventsResponse {
+	repeated Event events = 1;
+  }
 
 // protoc -I=./api/proto/google/protobuf -I=. api/proto/EventService.proto --go_out=internal/server/grpc/proto --go-grpc_out=internal/server/grpc/proto

@@ -4,7 +4,8 @@ package proto_event
 
 import (
 	context "context"
-	empty "github.com/golang/protobuf/ptypes/empty"
+//	"hw12_13_14_15_calendar/internal/storage"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -19,10 +20,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CalendarClient interface {
-	CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*empty.Empty, error)
-	UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*empty.Empty, error)
-	DeleteEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*empty.Empty, error)
-	GetEvents(ctx context.Context, in *Interval, opts ...grpc.CallOption) (*EventsResponse, error)
+	CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Event, error)
+	UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Event, error)
+	DeleteEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Event, error)
+	GetEvents(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Event, error)
 }
 
 type calendarClient struct {
@@ -33,8 +34,8 @@ func NewCalendarClient(cc grpc.ClientConnInterface) CalendarClient {
 	return &calendarClient{cc}
 }
 
-func (c *calendarClient) CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
+func (c *calendarClient) CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Event, error) {
+	out := new(Event)
 	err := c.cc.Invoke(ctx, "/proto_event.Calendar/CreateEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -42,8 +43,8 @@ func (c *calendarClient) CreateEvent(ctx context.Context, in *Event, opts ...grp
 	return out, nil
 }
 
-func (c *calendarClient) UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
+func (c *calendarClient) UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Event, error) {
+	out := new(Event)
 	err := c.cc.Invoke(ctx, "/proto_event.Calendar/UpdateEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -51,8 +52,8 @@ func (c *calendarClient) UpdateEvent(ctx context.Context, in *Event, opts ...grp
 	return out, nil
 }
 
-func (c *calendarClient) DeleteEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
+func (c *calendarClient) DeleteEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Event, error) {
+	out := new(Event)
 	err := c.cc.Invoke(ctx, "/proto_event.Calendar/DeleteEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -60,8 +61,8 @@ func (c *calendarClient) DeleteEvent(ctx context.Context, in *Event, opts ...grp
 	return out, nil
 }
 
-func (c *calendarClient) GetEvents(ctx context.Context, in *Interval, opts ...grpc.CallOption) (*EventsResponse, error) {
-	out := new(EventsResponse)
+func (c *calendarClient) GetEvents(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Event, error) {
+	out := new(Event)
 	err := c.cc.Invoke(ctx, "/proto_event.Calendar/GetEvents", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -73,10 +74,10 @@ func (c *calendarClient) GetEvents(ctx context.Context, in *Interval, opts ...gr
 // All implementations must embed UnimplementedCalendarServer
 // for forward compatibility
 type CalendarServer interface {
-	CreateEvent(context.Context, *Event) (*empty.Empty, error)
-	UpdateEvent(context.Context, *Event) (*empty.Empty, error)
-	DeleteEvent(context.Context, *Event) (*empty.Empty, error)
-	GetEvents(context.Context, *Interval) (*EventsResponse, error)
+	CreateEvent(context.Context, *Event) (*Event, error)
+	UpdateEvent(context.Context, *Event) (*Event, error)
+	DeleteEvent(context.Context, *Event) (*Event, error)
+	GetEvents(context.Context, *Event) (*Event, error)
 	mustEmbedUnimplementedCalendarServer()
 }
 
@@ -84,16 +85,17 @@ type CalendarServer interface {
 type UnimplementedCalendarServer struct {
 }
 
-func (UnimplementedCalendarServer) CreateEvent(context.Context, *Event) (*empty.Empty, error) {
+func (UnimplementedCalendarServer) CreateEvent(context.Context, *Event) (*Event, error) {
+
 	return nil, status.Errorf(codes.Unimplemented, "method CreateEvent not implemented")
 }
-func (UnimplementedCalendarServer) UpdateEvent(context.Context, *Event) (*empty.Empty, error) {
+func (UnimplementedCalendarServer) UpdateEvent(context.Context, *Event) (*Event, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateEvent not implemented")
 }
-func (UnimplementedCalendarServer) DeleteEvent(context.Context, *Event) (*empty.Empty, error) {
+func (UnimplementedCalendarServer) DeleteEvent(context.Context, *Event) (*Event, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteEvent not implemented")
 }
-func (UnimplementedCalendarServer) GetEvents(context.Context, *Interval) (*EventsResponse, error) {
+func (UnimplementedCalendarServer) GetEvents(context.Context, *Event) (*Event, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvents not implemented")
 }
 func (UnimplementedCalendarServer) mustEmbedUnimplementedCalendarServer() {}
@@ -164,7 +166,7 @@ func _Calendar_DeleteEvent_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 func _Calendar_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Interval)
+	in := new(Event)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -176,7 +178,7 @@ func _Calendar_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/proto_event.Calendar/GetEvents",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServer).GetEvents(ctx, req.(*Interval))
+		return srv.(CalendarServer).GetEvents(ctx, req.(*Event))
 	}
 	return interceptor(ctx, in, info, handler)
 }
