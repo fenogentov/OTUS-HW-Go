@@ -1,4 +1,4 @@
-module github.com/fenogentov/OTUS-HW-Go/hw02_unpack_string
+module hw02_unpack_string
 
 go 1.18
 
