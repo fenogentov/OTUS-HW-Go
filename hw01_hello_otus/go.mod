@@ -1,5 +1,5 @@
 module github.com/fenogentov/OTUS-HW-Go/hw01_hello_otus
 
-go 1.16
+go 1.18
 
-require golang.org/x/example v0.0.0-20210407023211-09c3a5e06b5d
+require golang.org/x/example v0.0.0-20220412213650-2e68773dfca0
