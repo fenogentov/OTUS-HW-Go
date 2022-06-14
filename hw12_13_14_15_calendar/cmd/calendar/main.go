@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"flag"
-	"hw12_13_14_15_calendar/internal/config"
 	httpserver "hw12_13_14_15_calendar/internal/server/http"
 	"hw12_13_14_15_calendar/internal/storage"
 	storagememory "hw12_13_14_15_calendar/internal/storage/memory"
 	storagesql "hw12_13_14_15_calendar/internal/storage/sql"
+	"hw12_13_14_15_calendar/internal/util/config"
 	"hw12_13_14_15_calendar/internal/util/logger"
 	"hw12_13_14_15_calendar/internal/util/version"
 	"log"
